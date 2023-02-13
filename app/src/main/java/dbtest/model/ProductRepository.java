@@ -5,12 +5,18 @@ package dbtest.model;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+
+import dbtest.service.Product;
 
 public class ProductRepository {
     private Connection conn;
 
-    public ProductRepository(Connection conn){
+    public ProductRepository(Connection conn) {
         this.conn = conn;
     }
 
@@ -35,5 +41,102 @@ public class ProductRepository {
             System.out.println("insert 실패");
         }
         pstmt.close();
+    }
+
+    public void deleteById(int id) throws SQLException {
+
+        // 2. 버퍼 연결
+        String sql = "delete from product where id = ?";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+
+        // 3. 물음표 완성
+        pstmt.setInt(1, id);
+
+        // 4. 전송
+        int result = pstmt.executeUpdate();
+
+        // 5. 응답에 대한 처리
+        if (result == 1) {
+            System.out.println("delete 성공");
+        } else {
+            System.out.println("delete 실패");
+        }
+        pstmt.close();
+    }
+
+    public void updateById(int id, String name, int price, int qty) throws SQLException {
+
+        // 2. 버퍼 연결
+        String sql = "update product set name = ?, price = ?, qty = ?, where id = ?";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+
+        // 3. 물음표 완성
+        pstmt.setString(1, name);
+        pstmt.setInt(2, price);
+        pstmt.setInt(3, qty);
+        pstmt.setInt(4, id);
+
+        // 4. 전송
+        int result = pstmt.executeUpdate();
+
+        // 5. 응답에 대한 처리
+        if (result == 1) {
+            System.out.println("update 성공");
+        } else {
+            System.out.println("update 실패");
+        }
+        pstmt.close();
+    }
+
+    public List<Product> findAll() throws SQLException {
+        List<Product> productList = new ArrayList<>();
+
+        // 2. 버퍼 연결
+        String sql = "select * from product";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+
+        // 3. 물음표 완성
+
+        // 4. 전송
+        ResultSet rs = pstmt.executeQuery(sql);
+        while (rs.next()) {
+            int v1 = rs.getInt("id");
+            String name = rs.getString("name");
+            int price = rs.getInt("price");
+            int qty = rs.getInt("qty");
+            Timestamp createdAt = rs.getTimestamp("created_at");
+            Product product = new Product(v1, name, price, qty, createdAt);
+            productList.add(product);
+        }
+
+        // 5. 응답에 대한 처리
+        pstmt.close();
+        return productList;
+    }
+
+    public Product findById(int id) throws SQLException {
+        Product product = null;
+
+        // 2. 버퍼 연결
+        String sql = "select * from product where id = ?";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+
+        // 3. 물음표 완성
+        pstmt.setInt(1, id);
+
+        // 4. 전송
+        ResultSet rs = pstmt.executeQuery(sql);
+        if (rs.next()) {
+            int v1 = rs.getInt("id");
+            String name = rs.getString("name");
+            int price = rs.getInt("price");
+            int qty = rs.getInt("qty");
+            Timestamp createdAt = rs.getTimestamp("created_at");
+            product = new Product(v1, name, price, qty, createdAt);
+        }
+
+        // 5. 응답에 대한 처리
+        pstmt.close();
+        return product;
     }
 }
